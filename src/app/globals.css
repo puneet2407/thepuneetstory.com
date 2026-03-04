@@ -1,26 +1,209 @@
 @import "tailwindcss";
+@source "../**/*.{js,ts,jsx,tsx}";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-size: 16px;
+  --font-serif: var(--font-playfair), "Playfair Display", serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+
+  /* Brand colors - Editorial + South Asian warmth */
+  --navy: #1a2332;
+  --charcoal: #2d3748;
+  --saffron: #f59e0b;
+  --amber: #d97706;
+  --cream: #faf8f5;
+  --off-white: #f9fafb;
+
+  --background: var(--cream);
+  --foreground: var(--navy);
+  --card: #ffffff;
+  --card-foreground: var(--navy);
+  --popover: #ffffff;
+  --popover-foreground: var(--navy);
+  --primary: var(--saffron);
+  --primary-foreground: #ffffff;
+  --secondary: var(--off-white);
+  --secondary-foreground: var(--navy);
+  --muted: #e5e7eb;
+  --muted-foreground: #6b7280;
+  --accent: var(--saffron);
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(26, 35, 50, 0.1);
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #d1d5db;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: var(--saffron);
+  --chart-1: var(--saffron);
+  --chart-2: var(--navy);
+  --chart-3: var(--amber);
+  --chart-4: #8b5cf6;
+  --chart-5: #ec4899;
+  --radius: 0.5rem;
+  --sidebar: var(--cream);
+  --sidebar-foreground: var(--navy);
+  --sidebar-primary: var(--saffron);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--off-white);
+  --sidebar-accent-foreground: var(--navy);
+  --sidebar-border: rgba(26, 35, 50, 0.1);
+  --sidebar-ring: var(--saffron);
+}
+
+.dark {
+  --background: var(--navy);
+  --foreground: var(--cream);
+  --card: var(--charcoal);
+  --card-foreground: var(--cream);
+  --popover: var(--charcoal);
+  --popover-foreground: var(--cream);
+  --primary: var(--saffron);
+  --primary-foreground: #ffffff;
+  --secondary: #374151;
+  --secondary-foreground: var(--cream);
+  --muted: #374151;
+  --muted-foreground: #9ca3af;
+  --accent: var(--saffron);
+  --accent-foreground: #ffffff;
+  --destructive: #dc2626;
+  --destructive-foreground: var(--cream);
+  --border: rgba(249, 250, 251, 0.1);
+  --input: #374151;
+  --ring: var(--saffron);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: var(--saffron);
+  --chart-2: #60a5fa;
+  --chart-3: var(--amber);
+  --chart-4: #a78bfa;
+  --chart-5: #f472b6;
+  --sidebar: var(--charcoal);
+  --sidebar-foreground: var(--cream);
+  --sidebar-primary: var(--saffron);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #374151;
+  --sidebar-accent-foreground: var(--cream);
+  --sidebar-border: rgba(249, 250, 251, 0.1);
+  --sidebar-ring: var(--saffron);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+
+  html {
+    font-size: var(--font-size);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-serif);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
