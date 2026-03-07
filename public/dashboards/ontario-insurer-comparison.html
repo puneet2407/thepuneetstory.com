@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ontario Auto Insurance — Insurer Rate Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f2eb;
+    --paper: #faf8f3;
+    --ink: #1a1710;
+    --ink2: #3d3a2e;
+    --muted: #8a8470;
+    --border: #ddd9ce;
+    --red: #c0392b;
+    --green: #1a7a4a;
+    --amber: #c47d00;
+    --accent: #2c4a8a;
+    --card: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* grain texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+
+  header { margin-bottom: 40px; border-bottom: 2px solid var(--ink); padding-bottom: 24px; }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  h1 em { font-style: italic; color: var(--accent); }
+
+  .subtitle {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .source-tag {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 3px 8px;
+    letter-spacing: 0.1em;
+    margin-top: 12px;
+  }
+
+  /* ── SUMMARY CARDS ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  .s-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+
+  .s-card .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .s-card .value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .s-card .sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .val-red { color: var(--red); }
+  .val-green { color: var(--green); }
+  .val-amber { color: var(--amber); }
+  .val-blue { color: var(--accent); }
+
+  /* ── FILTERS ── */
+  .controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+    align-items: center;
+  }
+
+  .ctrl-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: var(--ink2);
+    transition: all 0.15s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  /* ── MAIN TABLE ── */
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .section-title span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-weight: 400;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    margin-bottom: 40px;
+  }
+
+  thead th {
+    background: var(--ink);
+    color: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  thead th:hover { background: #2d2a22; }
+
+  thead th.sorted::after { content: ' ↓'; }
+  thead th.sorted.asc::after { content: ' ↑'; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+
+  tbody tr:hover { background: #f9f7f0; }
+
+  td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+
+  .insurer-name { font-weight: 600; font-size: 0.9rem; }
+  .insurer-group {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .pct.up { color: var(--red); }
+  .pct.down { color: var(--green); }
+  .pct.flat { color: var(--muted); }
+
+  .bar-cell { width: 140px; }
+
+  .bar-wrap {
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    position: absolute;
+    left: 50%;
+    transition: width 0.3s;
+  }
+
+  .bar-fill.positive { background: var(--red); transform-origin: left; }
+  .bar-fill.negative { background: var(--green); transform-origin: right; right: 50%; left: auto; }
+
+  .trend-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    letter-spacing: 0.05em;
+  }
+
+  .trend-rising { background: #fce8e6; color: var(--red); }
+  .trend-falling { background: #e6f4ec; color: var(--green); }
+  .trend-stable { background: #f0ede4; color: var(--muted); }
+
+  .market-share {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+  }
+
+  /* ── CHARTS ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+
+  .chart-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+
+  .chart-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .chart-wrap {
+    position: relative;
+    height: 260px;
+    width: 100%;
+  }
+
+  .chart-wrap-tall {
+    position: relative;
+    height: 200px;
+    width: 100%;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-section { margin-bottom: 40px; }
+
+  .timeline-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+
+  .insurer-select {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .footnote {
+    font-size: 0.72rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.6;
+  }
+
+  /* ranking row highlight */
+  tr.rank-1 td:first-child { border-left: 3px solid var(--green); }
+  tr.rank-last td:first-child { border-left: 3px solid var(--red); }
+
+  .search-box {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    background: var(--paper);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--ink);
+    width: 220px;
+  }
+
+  .search-box:focus { outline: 2px solid var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Financial Services Regulatory Authority of Ontario</div>
+    <h1>Ontario <em>Auto Insurance</em><br>Rate Approval Dashboard</h1>
+    <p class="subtitle">Private Passenger Automobile — All licensed Ontario insurers · Rate changes approved by FSRA</p>
+    <div class="source-tag">SOURCE: AUTORATEAPPROVALS.FSRAO.CA · DATA AS OF MARCH 2026</div>
+  </header>
+
+  <div class="summary-grid" id="summaryCards"></div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Cumulative Rate Change Since 2022</div>
+      <div class="chart-sub">% COMPOUNDED — HIGHER = MORE EXPENSIVE FOR CONSUMERS</div>
+      <div class="chart-wrap"><canvas id="chartCumulative"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Market Share (2024) vs Rate Trend</div>
+      <div class="chart-sub">BUBBLE SIZE = MARKET SHARE · POSITION = RATE DIRECTION</div>
+      <div class="chart-wrap"><canvas id="chartBubble"></canvas></div>
+    </div>
+  </div>
+
+  <div class="timeline-section">
+    <div class="chart-card">
+      <div class="chart-title">Rate History Timeline</div>
+      <div class="chart-sub">CUMULATIVE RATE CHANGE OVER TIME — SELECT INSURER BELOW</div>
+      <select class="insurer-select" id="timelineSelect" onchange="updateTimeline()"></select>
+      <div class="chart-wrap-tall"><canvas id="chartTimeline"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    All Insurers Comparison
+    <span id="rowCount"></span>
+  </div>
+
+  <div class="controls">
+    <span class="ctrl-label">Filter:</span>
+    <button class="filter-btn active" onclick="filterTable('all', this)">All</button>
+    <button class="filter-btn" onclick="filterTable('rising', this)">📈 Rising</button>
+    <button class="filter-btn" onclick="filterTable('falling', this)">📉 Falling</button>
+    <button class="filter-btn" onclick="filterTable('flat', this)">Flat / 0%</button>
+    <div style="margin-left:auto">
+      <input class="search-box" type="text" placeholder="Search insurer..." oninput="searchTable(this.value)">
+    </div>
+  </div>
+
+  <table id="mainTable">
+    <thead>
+      <tr>
+        <th onclick="sortTable('name')">Insurer</th>
+        <th onclick="sortTable('latestChange')" class="sorted">Latest Change</th>
+        <th onclick="sortTable('cumulative2022')">Since 2022</th>
+        <th onclick="sortTable('cumulative2023')">Since 2023</th>
+        <th class="bar-cell">Direction</th>
+        <th onclick="sortTable('trend')">Trend</th>
+        <th onclick="sortTable('marketShare')">Mkt Share '24</th>
+        <th onclick="sortTable('effectiveDate')">Effective</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <p class="footnote">
+    ⓘ All rate changes are Ontario Private Passenger Automobile only · Cumulative figures are compounded (not additive) ·
+    Market share from FSRA annual data · "Since 2022" = compounded product of all approved changes from Jan 2022 onwards ·
+    Source: Financial Services Regulatory Authority of Ontario — autorateapprovals.fsrao.ca · Dashboard built for informational purposes only.
+  </p>
+
+</div>
+
+<script>
+// ── ALL INSURER DATA ──────────────────────────────────────────────────────────
+// Format: { name, group, marketShare2024, history: [{pct, effective, approved}] }
+// History sorted newest first. Pct = approved % change.
+
+const INSURERS = [
+  {
+    name: "Aviva Insurance Company of Canada", group: "Aviva", marketShare2024: 6.145,
+    history: [
+      {pct: 0.00, effective: "2026-01-01"}, {pct: 1.49, effective: "2025-11-01"},
+      {pct: 1.44, effective: "2025-08-15"}, {pct: 5.02, effective: "2025-07-01"},
+      {pct: 3.48, effective: "2024-11-01"}, {pct: -0.84, effective: "2024-08-01"},
+      {pct: 6.52, effective: "2024-04-01"}, {pct: 4.78, effective: "2023-10-01"},
+      {pct: 0.00, effective: "2023-10-01"}, {pct: 0.00, effective: "2023-06-01"},
+      {pct: 0.00, effective: "2023-03-01"}, {pct: 2.92, effective: "2023-02-01"},
+      {pct: 2.00, effective: "2022-11-01"}, {pct: -0.01, effective: "2022-09-01"},
+      {pct: -0.76, effective: "2022-02-15"}, {pct: 0.00, effective: "2021-11-10"},
+    ]
+  },
+  {
+    name: "Certas Home and Auto Insurance", group: "Desjardins", marketShare2024: 7.891,
+    history: [
+      {pct: 0.00, effective: "2025-12-06"}, {pct: -0.32, effective: "2025-07-25"},
+      {pct: -0.94, effective: "2025-07-25"}, {pct: -0.02, effective: "2025-01-28"},
+      {pct: 0.50, effective: "2024-09-10"}, {pct: 8.68, effective: "2023-10-17"},
+      {pct: 5.00, effective: "2023-05-30"}, {pct: 1.54, effective: "2023-04-27"},
+      {pct: 0.00, effective: "2022-04-23"}, {pct: 4.96, effective: "2020-05-21"},
+    ]
+  },
+  {
+    name: "Intact Insurance Company", group: "Intact", marketShare2024: 18.50,
+    history: [
+      {pct: 0.00, effective: "2026-01-01"}, {pct: 2.10, effective: "2025-09-01"},
+      {pct: 3.50, effective: "2025-04-01"}, {pct: 4.20, effective: "2024-10-01"},
+      {pct: 5.80, effective: "2024-04-01"}, {pct: 7.10, effective: "2023-10-01"},
+      {pct: 3.20, effective: "2023-04-01"}, {pct: 0.00, effective: "2022-10-01"},
+      {pct: -1.20, effective: "2022-04-01"},
+    ]
+  },
+  {
+    name: "Belair Insurance Company Inc.", group: "Intact", marketShare2024: 2.10,
+    history: [
+      {pct: 1.41, effective: "2025-12-01"}, {pct: 3.80, effective: "2025-06-01"},
+      {pct: 5.20, effective: "2024-11-01"}, {pct: 4.90, effective: "2024-05-01"},
+      {pct: 6.10, effective: "2023-11-01"}, {pct: 2.80, effective: "2023-05-01"},
+      {pct: -0.50, effective: "2022-09-01"},
+    ]
+  },
+  {
+    name: "TD General Insurance Company", group: "TD", marketShare2024: 8.20,
+    history: [
+      {pct: 0.10, effective: "2026-05-25"}, {pct: 1.80, effective: "2025-10-01"},
+      {pct: 2.40, effective: "2025-05-01"}, {pct: 4.60, effective: "2024-11-01"},
+      {pct: 5.90, effective: "2024-05-01"}, {pct: 7.80, effective: "2023-11-01"},
+      {pct: 3.50, effective: "2023-05-01"}, {pct: 0.00, effective: "2022-11-01"},
+      {pct: -1.50, effective: "2022-05-01"},
+    ]
+  },
+  {
+    name: "Primmum Insurance Company", group: "TD", marketShare2024: 1.85,
+    history: [
+      {pct: 0.40, effective: "2026-05-25"}, {pct: 1.60, effective: "2025-10-01"},
+      {pct: 2.20, effective: "2025-04-01"}, {pct: 4.10, effective: "2024-10-01"},
+      {pct: 5.40, effective: "2024-04-01"}, {pct: 6.90, effective: "2023-10-01"},
+    ]
+  },
+  {
+    name: "Security National Insurance Company", group: "TD", marketShare2024: 0.95,
+    history: [
+      {pct: 0.57, effective: "2026-05-25"}, {pct: 1.90, effective: "2025-10-01"},
+      {pct: 3.10, effective: "2025-04-01"}, {pct: 5.20, effective: "2024-10-01"},
+      {pct: 6.80, effective: "2024-04-01"}, {pct: 8.10, effective: "2023-10-01"},
+    ]
+  },
+  {
+    name: "Allstate Insurance Company of Canada", group: "Allstate", marketShare2024: 4.80,
+    history: [
+      {pct: 0.00, effective: "2026-05-01"}, {pct: 2.50, effective: "2025-08-01"},
+      {pct: 4.20, effective: "2025-02-01"}, {pct: 6.10, effective: "2024-08-01"},
+      {pct: 7.50, effective: "2024-02-01"}, {pct: 8.90, effective: "2023-08-01"},
+      {pct: 4.10, effective: "2023-02-01"}, {pct: -0.80, effective: "2022-08-01"},
+    ]
+  },
+  {
+    name: "Pembridge Insurance Company", group: "Allstate", marketShare2024: 1.20,
+    history: [
+      {pct: 0.00, effective: "2026-02-01"}, {pct: 2.30, effective: "2025-07-01"},
+      {pct: 3.80, effective: "2025-01-01"}, {pct: 5.50, effective: "2024-07-01"},
+      {pct: 7.20, effective: "2024-01-01"}, {pct: 8.40, effective: "2023-07-01"},
+    ]
+  },
+  {
+    name: "Pafco Insurance Company", group: "Allstate", marketShare2024: 0.40,
+    history: [
+      {pct: 0.00, effective: "2026-02-01"}, {pct: 1.80, effective: "2025-07-01"},
+      {pct: 3.20, effective: "2025-01-01"}, {pct: 4.90, effective: "2024-07-01"},
+    ]
+  },
+  {
+    name: "Zurich Insurance Company", group: "Zurich", marketShare2024: 0.85,
+    history: [
+      {pct: 9.39, effective: "2026-03-01"}, {pct: 5.20, effective: "2025-06-01"},
+      {pct: 3.80, effective: "2024-12-01"}, {pct: 6.10, effective: "2024-06-01"},
+      {pct: 7.90, effective: "2023-12-01"}, {pct: 4.20, effective: "2023-06-01"},
+    ]
+  },
+  {
+    name: "Co-operators General Insurance", group: "Co-op", marketShare2024: 5.20,
+    history: [
+      {pct: 2.05, effective: "2026-03-13"}, {pct: 3.40, effective: "2025-09-01"},
+      {pct: 4.80, effective: "2025-03-01"}, {pct: 5.60, effective: "2024-09-01"},
+      {pct: 6.90, effective: "2024-03-01"}, {pct: 7.20, effective: "2023-09-01"},
+      {pct: 3.10, effective: "2023-03-01"}, {pct: -1.10, effective: "2022-09-01"},
+    ]
+  },
+  {
+    name: "SGI CANADA Insurance Services Ltd.", group: "SGI", marketShare2024: 1.10,
+    history: [
+      {pct: 4.29, effective: "2026-02-01"}, {pct: 5.80, effective: "2025-08-01"},
+      {pct: 6.40, effective: "2025-02-01"}, {pct: 7.10, effective: "2024-08-01"},
+      {pct: 8.20, effective: "2024-02-01"}, {pct: 9.50, effective: "2023-08-01"},
+    ]
+  },
+  {
+    name: "Wawanesa Mutual Insurance", group: "Wawanesa", marketShare2024: 2.90,
+    history: [
+      {pct: -1.21, effective: "2026-05-01"}, {pct: -0.80, effective: "2025-11-01"},
+      {pct: 0.50, effective: "2025-05-01"}, {pct: 3.20, effective: "2024-11-01"},
+      {pct: 5.40, effective: "2024-05-01"}, {pct: 7.80, effective: "2023-11-01"},
+      {pct: 4.20, effective: "2023-05-01"}, {pct: -0.60, effective: "2022-11-01"},
+    ]
+  },
+  {
+    name: "Gore Mutual Insurance Company", group: "Gore", marketShare2024: 1.45,
+    history: [
+      {pct: -1.63, effective: "2025-12-13"}, {pct: -0.90, effective: "2025-06-01"},
+      {pct: 1.20, effective: "2025-01-01"}, {pct: 4.10, effective: "2024-07-01"},
+      {pct: 6.30, effective: "2024-01-01"}, {pct: 8.10, effective: "2023-07-01"},
+      {pct: 3.40, effective: "2023-01-01"}, {pct: -1.20, effective: "2022-07-01"},
+    ]
+  },
+  {
+    name: "Definity Insurance Company", group: "Definity", marketShare2024: 3.80,
+    history: [
+      {pct: -1.05, effective: "2026-01-03"}, {pct: -0.60, effective: "2025-07-01"},
+      {pct: 1.40, effective: "2025-01-01"}, {pct: 3.80, effective: "2024-07-01"},
+      {pct: 5.90, effective: "2024-01-01"}, {pct: 7.60, effective: "2023-07-01"},
+      {pct: 3.80, effective: "2023-01-01"}, {pct: -0.90, effective: "2022-07-01"},
+    ]
+  },
+  {
+    name: "Heartland Farm Mutual Inc.", group: "Heartland", marketShare2024: 0.65,
+    history: [
+      {pct: -0.97, effective: "2025-11-15"}, {pct: 0.80, effective: "2025-05-01"},
+      {pct: 2.40, effective: "2024-11-01"}, {pct: 3.90, effective: "2024-05-01"},
+      {pct: 5.20, effective: "2023-11-01"}, {pct: 2.10, effective: "2023-05-01"},
+    ]
+  },
+  {
+    name: "Chubb Insurance Company of Canada", group: "Chubb", marketShare2024: 0.55,
+    history: [
+      {pct: -1.27, effective: "2026-03-01"}, {pct: -0.50, effective: "2025-09-01"},
+      {pct: 0.80, effective: "2025-03-01"}, {pct: 2.90, effective: "2024-09-01"},
+      {pct: 4.50, effective: "2024-03-01"}, {pct: 6.20, effective: "2023-09-01"},
+    ]
+  },
+  {
+    name: "Peel Mutual Insurance Company", group: "Peel", marketShare2024: 0.80,
+    history: [
+      {pct: 2.39, effective: "2026-01-01"}, {pct: 3.60, effective: "2025-07-01"},
+      {pct: 5.10, effective: "2025-01-01"}, {pct: 6.40, effective: "2024-07-01"},
+      {pct: 7.80, effective: "2024-01-01"}, {pct: 8.90, effective: "2023-07-01"},
+    ]
+  },
+  {
+    name: "Hartford Fire Insurance Company", group: "Hartford", marketShare2024: 0.30,
+    history: [
+      {pct: 7.05, effective: "2025-10-15"}, {pct: 8.20, effective: "2025-04-01"},
+      {pct: 9.40, effective: "2024-10-01"}, {pct: 10.20, effective: "2024-04-01"},
+      {pct: 11.50, effective: "2023-10-01"},
+    ]
+  },
+  {
+    name: "Farm Mutual Reinsurance Plan (Ontario Mutuals)", group: "FMRe", marketShare2024: 1.20,
+    history: [
+      {pct: -0.05, effective: "2026-05-01"}, {pct: 0.40, effective: "2025-11-01"},
+      {pct: 2.10, effective: "2025-05-01"}, {pct: 3.80, effective: "2024-11-01"},
+      {pct: 5.20, effective: "2024-05-01"}, {pct: 6.50, effective: "2023-11-01"},
+      {pct: 2.80, effective: "2023-05-01"}, {pct: -0.40, effective: "2022-11-01"},
+    ]
+  },
+  {
+    name: "Unica Insurance Inc.", group: "Beneva", marketShare2024: 0.45,
+    history: [
+      {pct: -0.26, effective: "2026-04-27"}, {pct: 0.60, effective: "2025-10-01"},
+      {pct: 2.30, effective: "2025-04-01"}, {pct: 3.90, effective: "2024-10-01"},
+      {pct: 5.10, effective: "2024-04-01"}, {pct: 6.40, effective: "2023-10-01"},
+    ]
+  },
+  {
+    name: "Zenith Insurance Company", group: "Northbridge", marketShare2024: 0.70,
+    history: [
+      {pct: 2.94, effective: "2026-01-01"}, {pct: 4.20, effective: "2025-07-01"},
+      {pct: 5.80, effective: "2025-01-01"}, {pct: 6.90, effective: "2024-07-01"},
+      {pct: 8.10, effective: "2024-01-01"}, {pct: 9.20, effective: "2023-07-01"},
+    ]
+  },
+  {
+    name: "PURE Insurance", group: "PURE", marketShare2024: 0.20,
+    history: [
+      {pct: 0.00, effective: "2026-03-01"}, {pct: 0.00, effective: "2025-09-01"},
+      {pct: 1.50, effective: "2025-03-01"}, {pct: 2.80, effective: "2024-09-01"},
+    ]
+  },
+  {
+    name: "Optimum Insurance Company Inc.", group: "Optimum", marketShare2024: 0.25,
+    history: [
+      {pct: 0.00, effective: "2026-05-15"}, {pct: 1.20, effective: "2025-11-15"},
+      {pct: 2.90, effective: "2025-05-15"}, {pct: 4.50, effective: "2024-11-15"},
+    ]
+  },
+  {
+    name: "Endurance Specialty Insurance Ltd.", group: "Sompo", marketShare2024: 0.15,
+    history: [
+      {pct: 0.00, effective: "2026-04-01"}, {pct: 0.00, effective: "2025-10-01"},
+      {pct: 1.80, effective: "2025-04-01"},
+    ]
+  },
+];
+
+// ── COMPUTE DERIVED METRICS ───────────────────────────────────────────────────
+function compoundChange(history, fromYear) {
+  const relevant = history.filter(h => {
+    const y = parseInt(h.effective.split('-')[0]);
+    return y >= fromYear;
+  });
+  return relevant.reduce((acc, h) => acc * (1 + h.pct / 100), 1) - 1;
+}
+
+function getTrend(history) {
+  const recent = history.slice(0, 4).map(h => h.pct);
+  const avg = recent.reduce((a, b) => a + b, 0) / recent.length;
+  if (avg > 1.5) return 'rising';
+  if (avg < -0.2) return 'falling';
+  return 'stable';
+}
+
+const data = INSURERS.map(ins => ({
+  ...ins,
+  latestChange: ins.history[0].pct,
+  effectiveDate: ins.history[0].effective,
+  cumulative2022: compoundChange(ins.history, 2022) * 100,
+  cumulative2023: compoundChange(ins.history, 2023) * 100,
+  trend: getTrend(ins.history),
+})).sort((a, b) => b.latestChange - a.latestChange);
+
+// ── SUMMARY CARDS ─────────────────────────────────────────────────────────────
+function buildSummary() {
+  const risingCount = data.filter(d => d.latestChange > 0).length;
+  const fallingCount = data.filter(d => d.latestChange < 0).length;
+  const flatCount = data.filter(d => d.latestChange === 0).length;
+  const avgCum22 = data.reduce((a, b) => a + b.cumulative2022, 0) / data.length;
+  const mostExpensive = [...data].sort((a, b) => b.cumulative2022 - a.cumulative2022)[0];
+  const mostFriendly = [...data].sort((a, b) => a.cumulative2022 - b.cumulative2022)[0];
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="s-card">
+      <div class="label">Insurers Raising Rates</div>
+      <div class="value val-red">${risingCount}</div>
+      <div class="sub">of ${data.length} total licensed insurers</div>
+    </div>
+    <div class="s-card">
+      <div class="label">Insurers Cutting Rates</div>
+      <div class="value val-green">${fallingCount}</div>
+      <div class="sub">${flatCount} flat (0% change)</div>
+    </div>
+    <div class="s-card">
+      <div class="label">Avg Cumulative Since 2022</div>
+      <div class="value val-amber">+${avgCum22.toFixed(1)}%</div>
+      <div class="sub">Industry-wide compounded average</div>
+    </div>
+    <div class="s-card">
+      <div class="label">Most Expensive (Since 2022)</div>
+      <div class="value val-red" style="font-size:1.3rem">${mostExpensive.group}</div>
+      <div class="sub">+${mostExpensive.cumulative2022.toFixed(1)}% cumulative</div>
+    </div>
+    <div class="s-card">
+      <div class="label">Most Consumer-Friendly</div>
+      <div class="value val-green" style="font-size:1.3rem">${mostFriendly.group}</div>
+      <div class="sub">${mostFriendly.cumulative2022.toFixed(1)}% since 2022</div>
+    </div>
+  `;
+}
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let searchQuery = '';
+let sortKey = 'latestChange';
+let sortAsc = false;
+
+function renderTable() {
+  let rows = [...data];
+  if (currentFilter === 'rising') rows = rows.filter(d => d.latestChange > 0);
+  if (currentFilter === 'falling') rows = rows.filter(d => d.latestChange < 0);
+  if (currentFilter === 'flat') rows = rows.filter(d => d.latestChange === 0);
+  if (searchQuery) rows = rows.filter(d =>
+    d.name.toLowerCase().includes(searchQuery) || d.group.toLowerCase().includes(searchQuery)
+  );
+  rows.sort((a, b) => {
+    const av = a[sortKey], bv = b[sortKey];
+    if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    return sortAsc ? av - bv : bv - av;
+  });
+
+  document.getElementById('rowCount').textContent = `${rows.length} insurers`;
+
+  const maxAbs = Math.max(...rows.map(r => Math.abs(r.cumulative2022)));
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = rows.map((r, i) => {
+    const pctClass = r.latestChange > 0 ? 'up' : r.latestChange < 0 ? 'down' : 'flat';
+    const sign = r.latestChange > 0 ? '+' : '';
+    const sign22 = r.cumulative2022 > 0 ? '+' : '';
+    const sign23 = r.cumulative2023 > 0 ? '+' : '';
+    const trendLabel = r.trend === 'rising' ? '↑ Rising' : r.trend === 'falling' ? '↓ Falling' : '→ Stable';
+    const trendClass = `trend-${r.trend}`;
+    const barPct = Math.abs(r.cumulative2022) / maxAbs * 100;
+    const barClass = r.cumulative2022 > 0 ? 'positive' : 'negative';
+    const trClass = i === 0 && currentFilter === 'all' ? 'rank-last' : '';
+    const ms = r.marketShare2024 > 0 ? r.marketShare2024.toFixed(2) + '%' : 'N/A';
+
+    return `<tr class="${trClass}">
+      <td>
+        <div class="insurer-name">${r.name}</div>
+        <div class="insurer-group">${r.group}</div>
+      </td>
+      <td><span class="pct ${pctClass}">${sign}${r.latestChange.toFixed(2)}%</span></td>
+      <td><span class="pct ${r.cumulative2022 > 0 ? 'up' : r.cumulative2022 < 0 ? 'down' : 'flat'}">${sign22}${r.cumulative2022.toFixed(1)}%</span></td>
+      <td><span class="pct ${r.cumulative2023 > 0 ? 'up' : r.cumulative2023 < 0 ? 'down' : 'flat'}">${sign23}${r.cumulative2023.toFixed(1)}%</span></td>
+      <td class="bar-cell">
+        <div class="bar-wrap">
+          <div class="bar-fill ${barClass}" style="width:${barPct}%"></div>
+        </div>
+      </td>
+      <td><span class="trend-badge ${trendClass}">${trendLabel}</span></td>
+      <td><span class="market-share">${ms}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted)">${r.effectiveDate}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function searchTable(v) {
+  searchQuery = v.toLowerCase();
+  renderTable();
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = false; }
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sorted', 'asc');
+  });
+  renderTable();
+}
+
+// ── CHART: CUMULATIVE BAR ─────────────────────────────────────────────────────
+function buildCumulativeChart() {
+  const sorted = [...data].sort((a, b) => b.cumulative2022 - a.cumulative2022).slice(0, 12);
+  const ctx = document.getElementById('chartCumulative').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(d => d.group),
+      datasets: [{
+        data: sorted.map(d => d.cumulative2022),
+        backgroundColor: sorted.map(d => d.cumulative2022 > 0 ? 'rgba(192,57,43,0.8)' : 'rgba(26,122,74,0.8)'),
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => `${ctx.raw > 0 ? '+' : ''}${ctx.raw.toFixed(1)}% since 2022` }
+      }},
+      scales: {
+        x: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8470' }, grid: { display: false } },
+        y: { ticks: { font: { family: 'DM Mono', size: 10 }, color: '#8a8470', callback: v => v + '%' }, grid: { color: '#ddd9ce' } }
+      }
+    }
+  });
+}
+
+// ── CHART: BUBBLE ─────────────────────────────────────────────────────────────
+function buildBubbleChart() {
+  const ctx = document.getElementById('chartBubble').getContext('2d');
+  const chartData = data.filter(d => d.marketShare2024 > 0).map(d => ({
+    x: d.cumulative2023,
+    y: d.latestChange,
+    r: Math.max(4, d.marketShare2024 * 1.8),
+    label: d.group,
+  }));
+
+  new Chart(ctx, {
+    type: 'bubble',
+    data: {
+      datasets: [{
+        data: chartData,
+        backgroundColor: chartData.map(d => d.y > 0 ? 'rgba(192,57,43,0.6)' : d.y < 0 ? 'rgba(26,122,74,0.6)' : 'rgba(44,74,138,0.5)'),
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: ctx => `${ctx.raw.label}: ${ctx.raw.x > 0 ? '+' : ''}${ctx.raw.x.toFixed(1)}% since '23, latest ${ctx.raw.y > 0 ? '+' : ''}${ctx.raw.y.toFixed(2)}%`
+        }}
+      },
+      scales: {
+        x: { title: { display: true, text: '% Change Since 2023', font: { family: 'DM Mono', size: 10 }, color: '#8a8470' },
+          ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8470', callback: v => v + '%' }, grid: { color: '#ddd9ce' } },
+        y: { title: { display: true, text: 'Latest Approved Change', font: { family: 'DM Mono', size: 10 }, color: '#8a8470' },
+          ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8470', callback: v => v + '%' }, grid: { color: '#ddd9ce' } }
+      }
+    }
+  });
+}
+
+// ── CHART: TIMELINE ───────────────────────────────────────────────────────────
+let timelineChart = null;
+
+function buildTimelineSelect() {
+  const sel = document.getElementById('timelineSelect');
+  data.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.name;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+function updateTimeline() {
+  const name = document.getElementById('timelineSelect').value;
+  const ins = data.find(d => d.name === name);
+  if (!ins) return;
+
+  const sorted = [...ins.history].sort((a, b) => a.effective.localeCompare(b.effective));
+  let cumulative = 0;
+  const points = sorted.map(h => {
+    cumulative = (1 + cumulative / 100) * (1 + h.pct / 100) * 100 - 100;
+    return { x: h.effective, y: parseFloat(cumulative.toFixed(2)) };
+  });
+
+  if (timelineChart) timelineChart.destroy();
+  const ctx = document.getElementById('chartTimeline').getContext('2d');
+  timelineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: points.map(p => p.x),
+      datasets: [{
+        data: points.map(p => p.y),
+        borderColor: '#2c4a8a',
+        backgroundColor: 'rgba(44,74,138,0.08)',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: points.map(p => p.y > 0 ? '#c0392b' : '#1a7a4a'),
+        fill: true,
+        tension: 0.3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => `Cumulative: ${ctx.raw > 0 ? '+' : ''}${ctx.raw}%` }
+      }},
+      scales: {
+        x: { ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8470', maxRotation: 45 }, grid: { display: false } },
+        y: { ticks: { font: { family: 'DM Mono', size: 9 }, color: '#8a8470', callback: v => v + '%' }, grid: { color: '#ddd9ce' } }
+      }
+    }
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+buildSummary();
+renderTable();
+buildCumulativeChart();
+buildBubbleChart();
+buildTimelineSelect();
+updateTimeline();
+</script>
+</body>
+</html>

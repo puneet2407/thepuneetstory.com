@@ -1,15 +1,16 @@
-import { posts } from "@/lib/data";
-
-const siteUrl = "https://thepuneetstory.com";
+import { getAllPosts } from "@/lib/data";
+import { site } from "@/lib/site";
 
 export async function GET() {
+  const posts = await getAllPosts();
+
   const items = posts
     .map(
       (post) => `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>${siteUrl}/post/${post.slug}</link>
-      <guid isPermaLink="true">${siteUrl}/post/${post.slug}</guid>
+      <link>${site.url}/post/${post.slug}</link>
+      <guid isPermaLink="true">${site.url}/post/${post.slug}</guid>
       <description><![CDATA[${post.description}]]></description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <category>${post.category}</category>
@@ -20,11 +21,11 @@ export async function GET() {
   const feed = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>The Puneet Story</title>
-    <link>${siteUrl}</link>
-    <description>Real Canada. Real Talk. Guides on insurance, taxes, real estate, immigration, tech, and daily life for the Indian-Canadian community.</description>
+    <title>${site.brandName}</title>
+    <link>${site.url}</link>
+    <description>${site.description}</description>
     <language>en-ca</language>
-    <atom:link href="${siteUrl}/feed.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="${site.url}/feed.xml" rel="self" type="application/rss+xml"/>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>${items}
   </channel>
 </rss>`;

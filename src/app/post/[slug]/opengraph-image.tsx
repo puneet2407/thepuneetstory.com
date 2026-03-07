@@ -1,12 +1,16 @@
 import { ImageResponse } from "next/og";
-import { getPostBySlug, categories, posts } from "@/lib/data";
+import { getAllPostSlugs, getPostBySlug } from "@/lib/data";
+import { categories } from "@/lib/post-types";
+import { site } from "@/lib/site";
 
-export const alt = "The Puneet Story";
+export const alt = site.brandName;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const runtime = "nodejs";
 
-export function generateStaticParams() {
-  return posts.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllPostSlugs();
+  return slugs.map((slug: string) => ({ slug }));
 }
 
 export default async function OgImage({
@@ -15,7 +19,7 @@ export default async function OgImage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return new ImageResponse(
@@ -148,11 +152,11 @@ export default async function OgImage({
             <span
               style={{ fontSize: "22px", fontWeight: 600, color: "#1a2332" }}
             >
-              The Puneet Story
+              {site.brandName}
             </span>
           </div>
           <span style={{ fontSize: "18px", color: "#6b7280" }}>
-            thepuneetstory.com
+            {site.url.replace(/^https?:\/\//, "")}
           </span>
         </div>
       </div>

@@ -1,43 +1,43 @@
 import type { Metadata } from "next";
-import { Playfair_Display, DM_Sans } from "next/font/google";
+import Script from "next/script";
+import { Montserrat, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
+import { GoogleTagManager } from "@/components/GoogleTagManager";
 
-const playfairDisplay = Playfair_Display({
+const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-playfair",
+  variable: "--font-montserrat",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
+const sourceSerif = Source_Serif_4({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-dm-sans",
+  weight: ["400", "600", "700"],
+  variable: "--font-source-serif",
   display: "swap",
 });
 
-const siteUrl = "https://thepuneetstory.com";
+import { site, person, social } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(site.url),
   title: {
-    default: "The Puneet Story",
-    template: "%s | The Puneet Story",
+    default: site.brandName,
+    template: `%s | ${site.brandName}`,
   },
-  description:
-    "Real Canada. Real Talk. Guides on insurance, taxes, real estate, immigration, tech, and daily life for the Indian-Canadian community.",
+  description: site.description,
   openGraph: {
     type: "website",
     locale: "en_CA",
-    url: siteUrl,
-    siteName: "The Puneet Story",
-    images: [{ url: "/og-default.jpg", width: 1200, height: 630 }],
+    url: site.url,
+    siteName: site.brandName,
   },
   twitter: {
     card: "summary_large_image",
-    creator: "@thepuneetstory",
+    creator: `@${social.twitterHandle}`,
   },
   robots: {
     index: true,
@@ -51,9 +51,9 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: siteUrl,
+    canonical: site.url,
     types: {
-      "application/rss+xml": `${siteUrl}/feed.xml`,
+      "application/rss+xml": `${site.url}/feed.xml`,
     },
   },
 };
@@ -62,15 +62,11 @@ function JsonLd() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "Person",
-    name: "Puneet",
-    url: siteUrl,
-    sameAs: [
-      "https://tiktok.com/@thepuneetstory",
-      "https://instagram.com/thepuneetstory",
-    ],
+    name: person.name,
+    url: site.url,
+    sameAs: social.links.map((l) => l.url),
     jobTitle: "Content Creator",
-    description:
-      "Indian immigrant and content creator helping the Indian-Canadian community navigate life in Canada.",
+    description: person.bioLong,
   };
 
   return (
@@ -89,8 +85,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${playfairDisplay.variable} ${dmSans.variable} antialiased`}
+        className={`${montserrat.variable} ${sourceSerif.variable} antialiased`}
       >
+        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+          <Script
+            src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
+            strategy="afterInteractive"
+          />
+        )}
+        <GoogleTagManager />
         <JsonLd />
         <div className="min-h-screen flex flex-col">
           <Navigation />

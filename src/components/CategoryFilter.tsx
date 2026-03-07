@@ -1,4 +1,5 @@
-import { Category, categories } from "@/lib/data";
+import type { Category } from "@/lib/post-types";
+import { categories } from "@/lib/post-types";
 
 interface CategoryFilterProps {
   selected: Category | "all";
@@ -7,13 +8,13 @@ interface CategoryFilterProps {
 
 export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+    <div className="flex flex-wrap gap-2">
       <button
         onClick={() => onSelect("all")}
-        className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
+        className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
           selected === "all"
-            ? "bg-primary text-primary-foreground"
-            : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+            ? "bg-pine text-white"
+            : "bg-white text-muted-foreground border border-[#e5e5e5] hover:border-pine/40 hover:text-foreground"
         }`}
       >
         All
@@ -22,10 +23,10 @@ export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
         <button
           key={category.value}
           onClick={() => onSelect(category.value)}
-          className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
+          className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${
             selected === category.value
-              ? "bg-primary text-primary-foreground"
-              : "bg-secondary text-secondary-foreground hover:bg-primary/10"
+              ? "bg-pine text-white"
+              : "bg-white text-muted-foreground border border-[#e5e5e5] hover:border-pine/40 hover:text-foreground"
           }`}
         >
           {category.label}
@@ -34,4 +35,3 @@ export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
     </div>
   );
 }
-

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function TermsOfUsePage() {
   return (
     <div className="min-h-screen py-16 px-4">
-      <div className="max-w-3xl mx-auto prose prose-lg">
+      <div className="max-w-[680px] mx-auto prose prose-lg">
         <h1 className="font-[family-name:var(--font-serif)] text-4xl mb-8">
           Terms of Use
         </h1>

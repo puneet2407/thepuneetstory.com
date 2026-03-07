@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeft,
-  ExternalLink,
-  Calendar,
-  LayoutDashboard,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ExternalLink, LayoutDashboard } from "lucide-react";
 import { DashboardEmbed } from "@/components/DashboardEmbed";
 import { EmailCapture } from "@/components/EmailCapture";
-import { getPostBySlug, categories, posts } from "@/lib/data";
+import { NotionBlocks } from "@/components/NotionBlocks";
+import { getAllPostSlugs, getPostBySlug } from "@/lib/data";
+import { getNotionBlocks } from "@/lib/notion";
+import { categories } from "@/lib/post-types";
+import { site, person } from "@/lib/site";
 
-export function generateStaticParams() {
-  return posts.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllPostSlugs();
+  return slugs.map((slug: string) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -23,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
   if (!post) return { title: "Post Not Found" };
 
   return {
@@ -58,14 +57,14 @@ function PostJsonLd({
     datePublished: date,
     author: {
       "@type": "Person",
-      name: "Puneet",
-      url: "https://thepuneetstory.com/about",
+      name: person.name,
+      url: `${site.url}/about`,
     },
     publisher: {
       "@type": "Person",
-      name: "Puneet",
+      name: person.name,
     },
-    url: `https://thepuneetstory.com/post/${slug}`,
+    url: `${site.url}/post/${slug}`,
   };
   return (
     <script
@@ -75,13 +74,23 @@ function PostJsonLd({
   );
 }
 
+function ArticleDivider() {
+  return (
+    <div className="article-divider" aria-hidden="true">
+      <span>·</span>
+      <span>·</span>
+      <span>·</span>
+    </div>
+  );
+}
+
 export default async function PostPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return notFound();
@@ -90,97 +99,144 @@ export default async function PostPage({
   const categoryLabel = categories.find((c) => c.value === post.category)
     ?.label;
 
+  const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const readTime = post.readTime ?? 5;
+
+  const notionBlocks = post.notionPageId
+    ? await getNotionBlocks(post.notionPageId)
+    : [];
+  const hasNotionContent = notionBlocks.length > 0;
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-warm-paper">
       <PostJsonLd
         title={post.title}
         description={post.description}
         date={post.date}
         slug={post.slug}
       />
-      {/* Header */}
-      <section className="bg-gradient-to-br from-[#faf8f5] via-[#f9fafb] to-[#faf8f5] py-8 px-4 border-b border-border">
-        <div className="max-w-4xl mx-auto">
-          <Button
-            asChild
-            variant="ghost"
-            className="gap-2 mb-6 -ml-4 hover:bg-transparent"
-          >
-            <Link href="/topics">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Topics
-            </Link>
-          </Button>
 
-          {/* Meta */}
-          <div className="flex flex-wrap items-center gap-3 mb-4">
-            <Badge
-              variant="secondary"
-              className="bg-primary/10 text-primary hover:bg-primary/20"
-            >
-              {categoryLabel}
-            </Badge>
-            {post.isDashboard && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Interactive Dashboard</span>
-              </div>
-            )}
-          </div>
+      <article className="max-w-[728px] mx-auto px-6 sm:px-8 pt-10 pb-20">
+        {/* Title */}
+        <h1 className="font-[family-name:var(--font-serif)] text-[32px] sm:text-[40px] md:text-[46px] font-bold leading-[1.12] tracking-[-0.016em] mb-4 text-[#292929]">
+          {post.title}
+        </h1>
 
-          {/* Title */}
-          <h1 className="font-[family-name:var(--font-serif)] text-3xl md:text-4xl lg:text-5xl mb-4">
-            {post.title}
-          </h1>
+        {/* Subtitle */}
+        <p className="text-[20px] sm:text-[22px] leading-[1.44] text-[#757575] mb-8">
+          {post.description}
+        </p>
 
-          {/* Description */}
-          <p className="text-lg text-muted-foreground mb-6">
-            {post.description}
-          </p>
-
-          {/* Date & Social */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        {/* Author byline */}
+        <div className="flex items-center gap-3 mb-8">
+          <Link href="/about" className="shrink-0">
+            <Image
+              src={person.imageUrl}
+              alt={person.imageAlt}
+              width={44}
+              height={44}
+              className="rounded-full object-cover"
+              style={{ width: 44, height: 44 }}
+            />
+          </Link>
+          <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>
-                {new Date(post.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </span>
-            </div>
-            {post.reelUrl && (
-              <a
-                href={post.reelUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-primary hover:underline"
+              <Link
+                href="/about"
+                className="text-sm font-medium text-[#292929] hover:underline"
               >
-                Watch on TikTok
-                <ExternalLink className="w-4 h-4" />
-              </a>
-            )}
+                {person.name}
+              </Link>
+              {post.reelUrl && (
+                <>
+                  <span className="text-[#757575]">·</span>
+                  <a
+                    href={post.reelUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-pine hover:underline inline-flex items-center gap-1"
+                  >
+                    Follow
+                  </a>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-1 text-[13px] text-[#757575]">
+              <span>{readTime} min read</span>
+              <span>·</span>
+              <span>{formattedDate}</span>
+              {post.isDashboard && (
+                <>
+                  <span>·</span>
+                  <span className="inline-flex items-center gap-1">
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    Interactive
+                  </span>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Content */}
-      <section className="py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <article className="prose prose-lg max-w-none mb-12">
-            {/* Main Content */}
-            <div className="bg-card border border-border rounded-lg p-8 mb-8">
-              <h2>Overview</h2>
+        {/* Toolbar divider */}
+        <div className="border-t border-b border-[rgba(0,0,0,0.06)] py-3 mb-10 flex items-center justify-between">
+          <div className="flex items-center gap-4 text-[#757575]">
+            <span className="text-xs uppercase tracking-wider font-medium">
+              {categoryLabel}
+            </span>
+          </div>
+          {post.reelUrl && (
+            <a
+              href={post.reelUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[13px] text-[#757575] hover:text-[#292929] transition-colors inline-flex items-center gap-1"
+            >
+              TikTok
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
+        </div>
+
+        {/* Hero image */}
+        {post.image && (
+          <figure className="mb-10 -mx-6 sm:-mx-8 md:-mx-16">
+            <Image
+              src={post.image}
+              alt={post.title}
+              width={1200}
+              height={630}
+              className="w-full h-auto"
+              priority
+            />
+            <figcaption className="image-caption mt-3 px-6 sm:px-8 md:px-16">
+              Photo for {post.title}
+            </figcaption>
+          </figure>
+        )}
+
+        {/* Article body */}
+        <div className="prose max-w-none">
+          {hasNotionContent ? (
+            <NotionBlocks blocks={notionBlocks} />
+          ) : (
+            <>
               <p>
-                This is where the in-depth article content would live. In a real
-                implementation, this would be pulled from MDX files or a CMS.
-                Each post expands on the short-form content shared on TikTok and
-                Instagram, providing detailed guides, step-by-step instructions,
-                and actionable insights.
+                This is where the in-depth article content would live. Once
+                connected to Notion, the full article will render here
+                automatically. Each post expands on the short-form content
+                shared on TikTok and Instagram, providing detailed guides,
+                step-by-step instructions, and actionable insights.
               </p>
 
-              <h3>Key Takeaways</h3>
+              <ArticleDivider />
+
+              <h2>Key Takeaways</h2>
               <ul>
                 <li>Detailed analysis and research-backed information</li>
                 <li>Real-world examples from the Indian-Canadian community</li>
@@ -188,90 +244,119 @@ export default async function PostPage({
                 <li>Links to official resources and tools</li>
               </ul>
 
-              <h3>Who This Is For</h3>
+              <ArticleDivider />
+
+              <h2>Who This Is For</h2>
               <p>
                 Whether you&apos;re new to Canada or have been here for years,
-                this content is designed to help you navigate the complexities of{" "}
-                {categoryLabel?.toLowerCase()} with confidence. I break down
+                this content is designed to help you navigate the complexities
+                of {categoryLabel?.toLowerCase()} with confidence. I break down
                 complex topics into digestible, practical advice you can use
                 immediately.
               </p>
-            </div>
+            </>
+          )}
 
-            {/* Dashboard Section (if applicable) */}
-            {post.isDashboard && (
+          {post.isDashboard && (
+            <>
+              <ArticleDivider />
               <DashboardEmbed
                 title="Interactive Dashboard"
-                description="Use the tools below to calculate, compare, or track your own data"
+                description={
+                  post.dashboardSrc
+                    ? "Compare Ontario auto insurer rate changes. Filter, sort, and explore the data below."
+                    : "Use the tools below to calculate, compare, or track your own data"
+                }
               >
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-8 text-center">
-                  <LayoutDashboard className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <h3 className="font-[family-name:var(--font-serif)] text-xl mb-2">
-                    Interactive Tool
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    In a production environment, this would embed your custom
-                    dashboard HTML. For now, this is a placeholder showing where
-                    your interactive tools would live.
-                  </p>
-                  <div className="inline-block bg-card border border-border rounded-lg p-6 text-left">
-                    <p className="text-sm mb-2">
-                      <strong className="font-mono text-primary">
-                        Example:
-                      </strong>{" "}
-                      Dashboard features
+                {post.dashboardSrc ? (
+                  <iframe
+                    src={post.dashboardSrc}
+                    title="Ontario Auto Insurance Rate Comparison Dashboard"
+                    className="w-full min-h-[1400px] border-0"
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                ) : (
+                  <div className="bg-[#fafafa] rounded-lg p-8 my-8">
+                    <LayoutDashboard className="w-12 h-12 text-[#757575] mx-auto mb-4" />
+                    <h3 className="font-[family-name:var(--font-serif)] text-xl mb-2">
+                      Interactive Tool
+                    </h3>
+                    <p className="text-[#757575] text-sm mb-4">
+                      In a production environment, this would embed your custom
+                      dashboard HTML.
                     </p>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Real-time calculations</li>
-                      <li>• Data visualization with charts</li>
-                      <li>• Comparison tools</li>
-                      <li>• Downloadable reports</li>
+                    <ul className="text-sm space-y-1 text-[#757575]">
+                      <li>Real-time calculations</li>
+                      <li>Data visualization with charts</li>
+                      <li>Comparison tools</li>
+                      <li>Downloadable reports</li>
                     </ul>
                   </div>
-                </div>
+                )}
               </DashboardEmbed>
-            )}
+            </>
+          )}
 
-            {/* Additional Resources */}
-            <div className="bg-secondary/50 border-l-4 border-primary rounded-lg p-6 my-8">
-              <h4 className="font-[family-name:var(--font-serif)] text-lg mb-2">
-                Additional Resources
-              </h4>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="#" className="text-primary hover:underline">
-                    Official Government Resource
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-primary hover:underline">
-                    Community Discussion Thread
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-primary hover:underline">
-                    Related Calculator Tool
-                  </a>
-                </li>
-              </ul>
-            </div>
+          <ArticleDivider />
 
-            {/* Disclaimer */}
-            <div className="bg-muted rounded-lg p-6 text-sm">
-              <p className="font-medium mb-2">Important Disclaimer</p>
-              <p className="text-muted-foreground">
-                The content on this page is for informational and educational
-                purposes only. It is not financial, legal, tax, or immigration
-                advice. Always consult with qualified professionals for your
-                specific situation.
-              </p>
-            </div>
-          </article>
-
-          {/* Email Capture */}
-          <EmailCapture variant="inline" />
+          <h3>Additional Resources</h3>
+          <ul>
+            {post.resources?.map((resource) => (
+              <li key={resource.url}>
+                <a
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {resource.label}
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-      </section>
+
+        <ArticleDivider />
+
+        {/* Disclaimer */}
+        <aside className="text-[13px] text-[#757575] leading-relaxed font-[family-name:var(--font-sans)] border-t border-[rgba(0,0,0,0.06)] pt-6 mb-10">
+          The content on this page is for informational and educational
+          purposes only. It is not financial, legal, tax, or immigration
+          advice. Always consult with qualified professionals for your
+          specific situation.
+        </aside>
+
+        {/* Author footer */}
+        <div className="border-t border-[rgba(0,0,0,0.06)] pt-8 mb-8">
+          <div className="flex items-start gap-4">
+            <Link href="/about" className="shrink-0">
+              <Image
+                src={person.imageUrl}
+                alt={person.imageAlt}
+                width={72}
+                height={72}
+                className="rounded-full object-cover"
+                style={{ width: 72, height: 72 }}
+              />
+            </Link>
+            <div>
+              <p className="text-base font-medium text-[#292929] mb-1">
+                Written by {person.name}
+              </p>
+              <p className="text-sm text-[#757575] leading-relaxed mb-3">
+                {person.bio}
+              </p>
+              <Link
+                href="/about"
+                className="inline-block text-sm font-medium text-pine hover:underline"
+              >
+                More from {person.name}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        <EmailCapture variant="inline" />
+      </article>
     </div>
   );
 }

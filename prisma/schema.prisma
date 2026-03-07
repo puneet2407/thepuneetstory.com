@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Category {
+  insurance
+  taxes
+  real_estate
+  immigration
+  tech
+  life
+}
+
+enum PostStatus {
+  published
+  trending
+  live
+}
+
+model Post {
+  id            String      @id
+  slug          String      @unique
+  title         String
+  description   String
+  category      Category
+  date          String
+  readTime      Int?
+  status        PostStatus?
+  reelUrl       String?
+  videoUrl      String?
+  image         String?
+  isDashboard   Boolean     @default(false)
+  dashboardSrc  String?
+  resources     Json?
+  notionPageId  String?     @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+

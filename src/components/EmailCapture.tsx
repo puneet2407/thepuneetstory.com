@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Mail } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { newsletter } from "@/lib/site";
+
+declare global {
+  interface Window {
+    grecaptcha?: {
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+    };
+  }
+}
 
 interface EmailCaptureProps {
   variant?: "inline" | "banner";
@@ -11,20 +18,43 @@ interface EmailCaptureProps {
 
 export function EmailCapture({ variant = "inline" }: EmailCaptureProps) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("loading");
 
     try {
+      let recaptchaToken: string | undefined;
+      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
+      if (
+        siteKey &&
+        typeof window !== "undefined" &&
+        window.grecaptcha?.execute
+      ) {
+        try {
+          recaptchaToken = await window.grecaptcha.execute(siteKey, {
+            action: "subscribe",
+          });
+        } catch (err) {
+          console.warn("[subscribe] reCAPTCHA execute error:", err);
+        }
+      }
+
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       });
 
-      if (!res.ok) throw new Error("Failed");
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Failed to subscribe");
+      }
 
       setStatus("success");
       setEmail("");
@@ -46,19 +76,13 @@ export function EmailCapture({ variant = "inline" }: EmailCaptureProps) {
 
   if (variant === "banner") {
     return (
-      <section className="bg-primary py-12 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="flex justify-center mb-4">
-            <div className="bg-white/10 p-3 rounded-full">
-              <Mail className="w-6 h-6 text-white" />
-            </div>
-          </div>
-          <h2 className="font-[family-name:var(--font-serif)] text-3xl mb-4 text-white">
-            Get Real Canada Insights
+      <section className="py-16 px-4 border-t border-[#e5e5e5]">
+        <div className="max-w-[680px] mx-auto text-center">
+          <h2 className="font-[family-name:var(--font-serif)] text-2xl font-bold mb-2">
+            Get the newsletter
           </h2>
-          <p className="text-white/90 mb-6 max-w-2xl mx-auto">
-            Join thousands of Indian-Canadians getting weekly tips on
-            insurance, taxes, real estate, and life in Canada.
+          <p className="text-muted-foreground mb-6">
+            {newsletter.heroSubtext}
           </p>
           <form
             onSubmit={handleSubmit}
@@ -66,54 +90,63 @@ export function EmailCapture({ variant = "inline" }: EmailCaptureProps) {
           >
             <Input
               type="email"
-              placeholder="Enter your email"
+              placeholder="Your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-white text-[#1a2332] flex-1"
-            />
-            <Button
-              type="submit"
-              variant="secondary"
-              className="bg-white text-primary hover:bg-white/90"
               disabled={status === "loading"}
+              className="flex-1 h-11 rounded-full border-[#e5e5e5] bg-white px-4 text-[15px]"
+            />
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="h-11 px-6 rounded-full bg-pine text-white text-sm font-medium hover:bg-pine-light disabled:opacity-50 transition-colors"
             >
               {buttonLabel}
-            </Button>
+            </button>
           </form>
+          {status === "error" && (
+            <p className="text-sm text-red-600 mt-2">
+              Something went wrong. Please try again.
+            </p>
+          )}
         </div>
       </section>
     );
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <div className="flex items-start gap-4">
-        <div className="bg-primary/10 p-3 rounded-lg flex-shrink-0">
-          <Mail className="w-5 h-5 text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-[family-name:var(--font-serif)] text-lg mb-2">
-            Stay Updated
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Get the latest guides, dashboards, and insights delivered to your
-            inbox.
+    <div className="py-10 border-t border-[#e5e5e5]">
+      <div className="max-w-md">
+        <h3 className="font-[family-name:var(--font-serif)] text-[22px] font-bold mb-2 text-foreground">
+          Stay updated
+        </h3>
+        <p className="text-[15px] text-muted-foreground leading-relaxed mb-5">
+          {newsletter.heroSubtext}
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <Input
+            type="email"
+            placeholder="Your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={status === "loading"}
+            className="flex-1 h-11 rounded-full border-[#e5e5e5] bg-white px-4 text-[15px]"
+          />
+          <button
+            type="submit"
+            disabled={status === "loading"}
+            className="h-11 px-6 rounded-full bg-pine text-white text-sm font-medium hover:bg-pine-light disabled:opacity-50 shrink-0 transition-colors"
+          >
+            {buttonLabel}
+          </button>
+        </form>
+        {status === "error" && (
+          <p className="text-sm text-red-600 mt-3">
+            Something went wrong. Please try again.
           </p>
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <Input
-              type="email"
-              placeholder="Your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="flex-1"
-            />
-            <Button type="submit" size="sm" disabled={status === "loading"}>
-              {status === "success" ? "Done!" : buttonLabel}
-            </Button>
-          </form>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
 import { ImageResponse } from "next/og";
+import { site, social } from "@/lib/site";
 
 export const runtime = "edge";
-export const alt = "The Puneet Story — Life in Canada";
+export const alt = `${site.brandName} — Life in Canada`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function OgImage() {
+  const firstLetter = site.brandName.charAt(0);
   return new ImageResponse(
     (
       <div
@@ -42,7 +44,7 @@ export default async function OgImage() {
               fontWeight: "bold",
             }}
           >
-            P
+            {firstLetter}
           </div>
           <span
             style={{
@@ -51,7 +53,7 @@ export default async function OgImage() {
               color: "#1a2332",
             }}
           >
-            The Puneet Story
+            {site.brandName}
           </span>
         </div>
         <h1
@@ -86,30 +88,21 @@ export default async function OgImage() {
             marginTop: "32px",
           }}
         >
-          <span
-            style={{
-              background: "#f59e0b",
-              color: "white",
-              padding: "8px 20px",
-              borderRadius: "20px",
-              fontSize: "16px",
-              fontWeight: 600,
-            }}
-          >
-            TikTok 125K+
-          </span>
-          <span
-            style={{
-              background: "#f59e0b",
-              color: "white",
-              padding: "8px 20px",
-              borderRadius: "20px",
-              fontSize: "16px",
-              fontWeight: 600,
-            }}
-          >
-            Instagram 89K+
-          </span>
+          {social.links.map((link) => (
+            <span
+              key={link.platform}
+              style={{
+                background: "#f59e0b",
+                color: "white",
+                padding: "8px 20px",
+                borderRadius: "20px",
+                fontSize: "16px",
+                fontWeight: 600,
+              }}
+            >
+              {link.platform} {link.followers}
+            </span>
+          ))}
         </div>
       </div>
     ),

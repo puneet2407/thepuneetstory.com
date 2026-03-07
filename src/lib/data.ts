@@ -1,142 +1,160 @@
-export type Category =
-  | "insurance"
-  | "taxes"
-  | "real-estate"
-  | "immigration"
-  | "tech"
-  | "life";
+import "server-only";
+import {
+  Category as PrismaCategory,
+  Prisma,
+  PostStatus as PrismaPostStatus,
+} from "@prisma/client";
+import type { Category, Post, PostStatus, ResourceLink } from "@/lib/post-types";
+import { prisma } from "@/lib/prisma";
 
-export interface Post {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  category: Category;
-  date: string;
-  reelUrl?: string;
-  image?: string;
-  isDashboard?: boolean;
+const postSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  description: true,
+  category: true,
+  date: true,
+  readTime: true,
+  status: true,
+  reelUrl: true,
+  videoUrl: true,
+  image: true,
+  isDashboard: true,
+  dashboardSrc: true,
+  resources: true,
+  notionPageId: true,
+} satisfies Prisma.PostSelect;
+
+type PostRecord = Prisma.PostGetPayload<{ select: typeof postSelect }>;
+
+function toPrismaCategory(category: Category): PrismaCategory {
+  switch (category) {
+    case "insurance":
+      return PrismaCategory.insurance;
+    case "taxes":
+      return PrismaCategory.taxes;
+    case "real-estate":
+      return PrismaCategory.real_estate;
+    case "immigration":
+      return PrismaCategory.immigration;
+    case "tech":
+      return PrismaCategory.tech;
+    case "life":
+      return PrismaCategory.life;
+  }
 }
 
-export const categories: { value: Category; label: string }[] = [
-  { value: "insurance", label: "Insurance" },
-  { value: "taxes", label: "Taxes" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "immigration", label: "Immigration" },
-  { value: "tech", label: "Tech" },
-  { value: "life", label: "Life in Canada" },
-];
-
-export const posts: Post[] = [
-  {
-    id: "1",
-    slug: "ontario-car-insurance-dashboard",
-    title: "Ontario Car Insurance Rate Comparison",
-    description:
-      "Interactive dashboard comparing car insurance rates across Ontario cities. Find the best rates for your location.",
-    category: "insurance",
-    date: "2026-03-01",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-    isDashboard: true,
-  },
-  {
-    id: "2",
-    slug: "first-time-home-buyer-tax-credits",
-    title: "First-Time Home Buyer Tax Credits Explained",
-    description:
-      "Everything you need to know about FTHB tax credits in Canada. Save thousands on your first home purchase.",
-    category: "taxes",
-    date: "2026-02-28",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-  },
-  {
-    id: "3",
-    slug: "gta-rent-vs-buy-calculator",
-    title: "GTA Rent vs Buy Calculator 2026",
-    description:
-      "Should you rent or buy in the Greater Toronto Area? Use this calculator to make an informed decision.",
-    category: "real-estate",
-    date: "2026-02-25",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-    isDashboard: true,
-  },
-  {
-    id: "4",
-    slug: "pr-timeline-tracker",
-    title: "PR Application Timeline Tracker",
-    description:
-      "Track your Permanent Residence application timeline. See average processing times and what to expect.",
-    category: "immigration",
-    date: "2026-02-20",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-    isDashboard: true,
-  },
-  {
-    id: "5",
-    slug: "tech-salaries-canada-2026",
-    title: "Tech Salaries in Canada: 2026 Report",
-    description:
-      "Comprehensive breakdown of tech salaries across Canada. Find out what you should be earning.",
-    category: "tech",
-    date: "2026-02-15",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-  },
-  {
-    id: "6",
-    slug: "indian-groceries-toronto-guide",
-    title: "Best Places for Indian Groceries in Toronto",
-    description:
-      "Complete guide to finding authentic Indian groceries in Toronto. Save money and eat well.",
-    category: "life",
-    date: "2026-02-10",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-  },
-  {
-    id: "7",
-    slug: "rrsp-tfsa-comparison",
-    title: "RRSP vs TFSA: Which One for Newcomers?",
-    description:
-      "Understand the difference between RRSP and TFSA accounts. Make the right choice for your financial future.",
-    category: "taxes",
-    date: "2026-02-05",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-  },
-  {
-    id: "8",
-    slug: "winter-driving-insurance-tips",
-    title: "Winter Driving & Insurance: What You Need to Know",
-    description:
-      "Essential tips for winter driving in Canada and how it affects your insurance premiums.",
-    category: "insurance",
-    date: "2026-01-30",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-  },
-  {
-    id: "9",
-    slug: "express-entry-crs-calculator",
-    title: "Express Entry CRS Score Calculator",
-    description:
-      "Calculate your Comprehensive Ranking System score for Express Entry. Know where you stand.",
-    category: "immigration",
-    date: "2026-01-25",
-    reelUrl: "https://tiktok.com/@thepuneetstory",
-    isDashboard: true,
-  },
-];
-
-export function getPostsByCategory(category: Category): Post[] {
-  return posts.filter((post) => post.category === category);
+function fromPrismaCategory(category: PrismaCategory): Category {
+  switch (category) {
+    case PrismaCategory.insurance:
+      return "insurance";
+    case PrismaCategory.taxes:
+      return "taxes";
+    case PrismaCategory.real_estate:
+      return "real-estate";
+    case PrismaCategory.immigration:
+      return "immigration";
+    case PrismaCategory.tech:
+      return "tech";
+    case PrismaCategory.life:
+      return "life";
+  }
 }
 
-export function getPostBySlug(slug: string): Post | undefined {
-  return posts.find((post) => post.slug === slug);
+function fromPrismaStatus(
+  status: PrismaPostStatus | null
+): PostStatus | undefined {
+  return status ?? undefined;
 }
 
-export function getFeaturedPosts(): Post[] {
-  return posts.slice(0, 3);
+function parseResources(resources: Prisma.JsonValue | null): ResourceLink[] | undefined {
+  if (!Array.isArray(resources)) {
+    return undefined;
+  }
+
+  const parsed = resources
+    .map((resource) => {
+      if (!resource || typeof resource !== "object" || Array.isArray(resource)) {
+        return null;
+      }
+
+      const candidate = resource as Record<string, unknown>;
+      if (typeof candidate.label !== "string" || typeof candidate.url !== "string") {
+        return null;
+      }
+
+      return {
+        label: candidate.label,
+        url: candidate.url,
+      };
+    })
+    .filter((resource): resource is ResourceLink => resource !== null);
+
+  return parsed.length > 0 ? parsed : undefined;
 }
 
-export function getLatestPosts(limit: number = 6): Post[] {
-  return posts.slice(0, limit);
+function mapPostFromRecord(record: PostRecord): Post {
+  return {
+    id: record.id,
+    slug: record.slug,
+    title: record.title,
+    description: record.description,
+    category: fromPrismaCategory(record.category),
+    date: record.date,
+    readTime: record.readTime ?? undefined,
+    status: fromPrismaStatus(record.status),
+    reelUrl: record.reelUrl ?? undefined,
+    videoUrl: record.videoUrl ?? undefined,
+    image: record.image ?? undefined,
+    isDashboard: record.isDashboard,
+    dashboardSrc: record.dashboardSrc ?? undefined,
+    resources: parseResources(record.resources),
+    notionPageId: record.notionPageId ?? undefined,
+  };
+}
+
+async function getPosts(where?: Prisma.PostWhereInput, limit?: number) {
+  const records = await prisma.post.findMany({
+    where,
+    select: postSelect,
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    ...(typeof limit === "number" ? { take: limit } : {}),
+  });
+
+  return records.map(mapPostFromRecord);
+}
+
+export async function getAllPosts() {
+  return getPosts();
+}
+
+export async function getAllPostSlugs() {
+  const records = await prisma.post.findMany({
+    select: { slug: true },
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+  });
+
+  return records.map((record) => record.slug);
+}
+
+export async function getPostsByCategory(category: Category) {
+  return getPosts({ category: toPrismaCategory(category) });
+}
+
+export async function getPostBySlug(slug: string) {
+  const record = await prisma.post.findUnique({
+    where: { slug },
+    select: postSelect,
+  });
+
+  return record ? mapPostFromRecord(record) : undefined;
+}
+
+export async function getFeaturedPosts() {
+  return getPosts(undefined, 3);
+}
+
+export async function getLatestPosts(limit: number = 6) {
+  return getPosts(undefined, limit);
 }
 
