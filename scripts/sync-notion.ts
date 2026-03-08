@@ -185,16 +185,17 @@ async function syncNotionPosts() {
   let skipped = 0;
 
   do {
+    const body: { start_cursor?: string; page_size: number; filter?: object } = {
+      start_cursor: cursor,
+      page_size: 100,
+    };
+    // Filter by Published only if NOTION_SYNC_PUBLISHED_ONLY=true and your DB has a "Published" checkbox
+    if (process.env.NOTION_SYNC_PUBLISHED_ONLY === "true") {
+      body.filter = { property: "Published", checkbox: { equals: true } };
+    }
     const response: NotionQueryResponse = await notionFetch(
       `/databases/${NOTION_DATABASE_ID}/query`,
-      {
-        start_cursor: cursor,
-        page_size: 100,
-        filter: {
-          property: "Published",
-          checkbox: { equals: true },
-        },
-      }
+      body
     );
 
     for (const page of response.results) {
@@ -238,7 +239,7 @@ async function syncNotionPosts() {
       };
 
       await prisma.post.upsert({
-        where: { notionPageId: page.id },
+        where: { slug },
         update: data,
         create: {
           id: page.id.replace(/-/g, "").slice(0, 24),

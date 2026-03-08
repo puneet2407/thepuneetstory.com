@@ -236,7 +236,7 @@ function RenderBlock({ block }: { block: BlockWithChildren }) {
             href={block.bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-pine hover:underline text-sm break-all"
+            className="text-pine hover:underline text-base break-all"
           >
             {block.bookmark.caption.length > 0
               ? getPlainText(block.bookmark.caption)

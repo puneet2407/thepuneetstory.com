@@ -13,7 +13,8 @@
     "start": "next start",
     "lint": "eslint .",
     "db:seed": "tsx prisma/seed.ts",
-    "notion:sync": "tsx scripts/sync-notion.ts"
+    "notion:sync": "tsx scripts/sync-notion.ts",
+    "notion:setup": "tsx scripts/setup-notion-database.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

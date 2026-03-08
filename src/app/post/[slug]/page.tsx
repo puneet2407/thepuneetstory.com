@@ -141,11 +141,11 @@ export default async function PostPage({
               style={{ width: 44, height: 44 }}
             />
           </Link>
-          <div className="flex flex-col">
+            <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <Link
                 href="/about"
-                className="text-sm font-medium text-[#292929] hover:underline"
+                className="text-base font-medium text-[#292929] hover:underline"
               >
                 {person.name}
               </Link>
@@ -156,14 +156,14 @@ export default async function PostPage({
                     href={post.reelUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-pine hover:underline inline-flex items-center gap-1"
+                    className="text-base text-pine hover:underline inline-flex items-center gap-1"
                   >
                     Follow
                   </a>
                 </>
               )}
             </div>
-            <div className="flex items-center gap-1 text-[13px] text-[#757575]">
+            <div className="flex items-center gap-1 text-[15px] text-[#757575]">
               <span>{readTime} min read</span>
               <span>·</span>
               <span>{formattedDate}</span>
@@ -183,7 +183,7 @@ export default async function PostPage({
         {/* Toolbar divider */}
         <div className="border-t border-b border-[rgba(0,0,0,0.06)] py-3 mb-10 flex items-center justify-between">
           <div className="flex items-center gap-4 text-[#757575]">
-            <span className="text-xs uppercase tracking-wider font-medium">
+            <span className="text-sm uppercase tracking-wider font-medium">
               {categoryLabel}
             </span>
           </div>
@@ -192,7 +192,7 @@ export default async function PostPage({
               href={post.reelUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[13px] text-[#757575] hover:text-[#292929] transition-colors inline-flex items-center gap-1"
+              className="text-[15px] text-[#757575] hover:text-[#292929] transition-colors inline-flex items-center gap-1"
             >
               TikTok
               <ExternalLink className="w-3 h-3" />
@@ -278,11 +278,11 @@ export default async function PostPage({
                     <h3 className="font-[family-name:var(--font-serif)] text-xl mb-2">
                       Interactive Tool
                     </h3>
-                    <p className="text-[#757575] text-sm mb-4">
+                    <p className="text-[#757575] text-base mb-4">
                       In a production environment, this would embed your custom
                       dashboard HTML.
                     </p>
-                    <ul className="text-sm space-y-1 text-[#757575]">
+                    <ul className="text-base space-y-1 text-[#757575]">
                       <li>Real-time calculations</li>
                       <li>Data visualization with charts</li>
                       <li>Comparison tools</li>
@@ -315,7 +315,7 @@ export default async function PostPage({
         <ArticleDivider />
 
         {/* Disclaimer */}
-        <aside className="text-[13px] text-[#757575] leading-relaxed font-[family-name:var(--font-sans)] border-t border-[rgba(0,0,0,0.06)] pt-6 mb-10">
+        <aside className="text-[15px] text-[#757575] leading-relaxed font-[family-name:var(--font-sans)] border-t border-[rgba(0,0,0,0.06)] pt-6 mb-10">
           The content on this page is for informational and educational
           purposes only. It is not financial, legal, tax, or immigration
           advice. Always consult with qualified professionals for your
@@ -339,12 +339,12 @@ export default async function PostPage({
               <p className="text-base font-medium text-[#292929] mb-1">
                 Written by {person.name}
               </p>
-              <p className="text-sm text-[#757575] leading-relaxed mb-3">
+              <p className="text-[15px] text-[#757575] leading-relaxed mb-3">
                 {person.bio}
               </p>
               <Link
                 href="/about"
-                className="inline-block text-sm font-medium text-pine hover:underline"
+                className="inline-block text-base font-medium text-pine hover:underline"
               >
                 More from {person.name}
               </Link>
