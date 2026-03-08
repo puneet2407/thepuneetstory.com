@@ -52,9 +52,11 @@ export const social = {
 
 /** Home page hero and trust section. */
 export const home = {
-  heroTitle: "Your Guide to Life in Canada",
+  /** Badge text above the hero headline (e.g. tagline or category). */
+  heroBadge: "Real Canada. Real Talk.",
+  heroTitle: "Insurance, Taxes, Real Estate—Without the Jargon",
   heroSubtext:
-    "From insurance and taxes to real estate and immigration—get the insights you need as an Indian-Canadian. Backed by real experience, powered by community.",
+    "I'm an Indian immigrant who learned the hard way. Now I break down what actually matters for life in Canada—so you can make decisions with confidence. Backed by real experience, powered by community.",
   topicsIntro:
     "Real, useful topics for the Indian-Canadian community. Each video links to deeper content, dashboards, and tools.",
   trustTitle: "Why Trust The Puneet Story?",
@@ -112,16 +114,6 @@ export const newsletter = {
   heroSubtext:
     "Join thousands of Indian-Canadians getting weekly tips on insurance, taxes, real estate, immigration, and life in the Great White North.",
   sendDay: "Sundays",
-} as const;
-
-/** Dashboard / bento grid stats. */
-export const dashboardStats = {
-  totalViews: "1.2M",
-  totalEngagement: "89K",
-  subscriberCount: "100K+",
-  avgWatchTime: "2:34",
-  postsPublished: "120+",
-  countriesReached: "45",
 } as const;
 
 /** Legal pages: jurisdiction and contact note. */
