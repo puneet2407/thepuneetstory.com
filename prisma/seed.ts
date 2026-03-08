@@ -3,7 +3,7 @@ import {
   Prisma,
   PostStatus as PrismaPostStatus,
 } from "@prisma/client";
-import { prisma } from "../src/lib/prisma";
+import { getPrisma } from "../src/lib/prisma";
 import type { ResourceLink } from "../src/lib/post-types";
 import { posts } from "../src/lib/seed-posts";
 
@@ -37,6 +37,8 @@ function toResourcesJson(resources?: ResourceLink[]) {
 }
 
 async function main() {
+  const prisma = getPrisma();
+
   for (const post of posts) {
     await prisma.post.upsert({
       where: { slug: post.slug },
@@ -83,5 +85,6 @@ main()
     process.exitCode = 1;
   })
   .finally(async () => {
+    const prisma = getPrisma();
     await prisma.$disconnect();
   });

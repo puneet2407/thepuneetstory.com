@@ -5,7 +5,7 @@ import {
   PostStatus as PrismaPostStatus,
 } from "@prisma/client";
 import type { Category, Post, PostStatus, ResourceLink } from "@/lib/post-types";
-import { prisma } from "@/lib/prisma";
+import { getPrisma } from "@/lib/prisma";
 
 const postSelect = {
   id: true,
@@ -114,7 +114,7 @@ function mapPostFromRecord(record: PostRecord): Post {
 }
 
 async function getPosts(where?: Prisma.PostWhereInput, limit?: number) {
-  const records = await prisma.post.findMany({
+  const records = await getPrisma().post.findMany({
     where,
     select: postSelect,
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
@@ -129,7 +129,7 @@ export async function getAllPosts() {
 }
 
 export async function getAllPostSlugs() {
-  const records = await prisma.post.findMany({
+  const records = await getPrisma().post.findMany({
     select: { slug: true },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
   });
@@ -142,7 +142,7 @@ export async function getPostsByCategory(category: Category) {
 }
 
 export async function getPostBySlug(slug: string) {
-  const record = await prisma.post.findUnique({
+  const record = await getPrisma().post.findUnique({
     where: { slug },
     select: postSelect,
   });

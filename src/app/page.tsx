@@ -6,6 +6,8 @@ import { EmailCapture } from "@/components/EmailCapture";
 import { getLatestPosts } from "@/lib/data";
 import { person, home, dashboardStats } from "@/lib/site";
 
+export const dynamic = "force-dynamic";
+
 const statItems = [
   { label: "Total Views", value: dashboardStats.totalViews, icon: Eye },
   { label: "Engagement", value: dashboardStats.totalEngagement, icon: Heart },

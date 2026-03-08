@@ -6,15 +6,12 @@ import { ExternalLink, LayoutDashboard } from "lucide-react";
 import { DashboardEmbed } from "@/components/DashboardEmbed";
 import { EmailCapture } from "@/components/EmailCapture";
 import { NotionBlocks } from "@/components/NotionBlocks";
-import { getAllPostSlugs, getPostBySlug } from "@/lib/data";
+import { getPostBySlug } from "@/lib/data";
 import { getNotionBlocks } from "@/lib/notion";
 import { categories } from "@/lib/post-types";
 import { site, person } from "@/lib/site";
 
-export async function generateStaticParams() {
-  const slugs = await getAllPostSlugs();
-  return slugs.map((slug: string) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
