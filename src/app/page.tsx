@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { PostCard } from "@/components/PostCard";
 import { EmailCapture } from "@/components/EmailCapture";
@@ -10,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const posts = await getLatestPosts(7);
   const [featuredPost, ...restPosts] = posts;
+  const initial = (person.name?.trim()?.charAt(0) || "•").toUpperCase();
 
   return (
     <div className="min-h-screen bg-warm-paper">
@@ -28,14 +28,13 @@ export default async function Home() {
 
           {/* Author line */}
           <div className="flex items-center gap-3 kinetic-fade kinetic-fade-delay-3">
-            <Image
-              src={person.imageUrl}
-              alt={person.imageAlt}
-              width={40}
-              height={40}
-              className="rounded-full object-cover"
+            <span
+              className="inline-flex items-center justify-center rounded-full bg-foreground/10 text-foreground font-semibold"
               style={{ width: 40, height: 40 }}
-            />
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
             <div>
               <p className="text-sm font-medium text-foreground">
                 {person.name}

@@ -2,7 +2,6 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Play, BarChart3 } from "lucide-react";
 import type { Post } from "@/lib/post-types";
 import { categories } from "@/lib/post-types";
@@ -24,6 +23,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
   const videoRef = useRef<HTMLDivElement>(null);
   const categoryLabel = categories.find((c) => c.value === post.category)
     ?.label;
+  const initial = (person.name?.trim()?.charAt(0) || "•").toUpperCase();
 
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
@@ -85,14 +85,13 @@ export function PostCard({ post, featured = false }: PostCardProps) {
           </p>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Image
-              src={person.imageUrl}
-              alt={person.imageAlt}
-              width={24}
-              height={24}
-              className="rounded-full object-cover"
+            <span
+              className="inline-flex items-center justify-center rounded-full bg-foreground/10 text-foreground font-semibold"
               style={{ width: 24, height: 24 }}
-            />
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
             <span className="font-medium text-foreground">{person.name}</span>
             <span>·</span>
             <span>{categoryLabel}</span>
@@ -112,14 +111,13 @@ export function PostCard({ post, featured = false }: PostCardProps) {
         {/* Text side — left */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
-            <Image
-              src={person.imageUrl}
-              alt={person.imageAlt}
-              width={20}
-              height={20}
-              className="rounded-full object-cover"
-              style={{ width: 20, height: 20 }}
-            />
+            <span
+              className="inline-flex items-center justify-center rounded-full bg-foreground/10 text-foreground font-semibold"
+              style={{ width: 20, height: 20, fontSize: 12 }}
+              aria-hidden="true"
+            >
+              {initial}
+            </span>
             <span className="text-[13px] font-medium text-foreground">
               {person.name}
             </span>

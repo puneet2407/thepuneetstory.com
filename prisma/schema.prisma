@@ -37,6 +37,7 @@ model Post {
   dashboardSrc  String?
   resources     Json?
   notionPageId  String?     @unique
+  contentBlocks Json?       @map("content_blocks")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

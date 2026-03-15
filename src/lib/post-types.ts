@@ -29,6 +29,8 @@ export interface Post {
   dashboardSrc?: string;
   resources?: ResourceLink[];
   notionPageId?: string;
+  /** Notion block tree (synced by script); avoids live Notion API at request time */
+  contentBlocks?: unknown[];
 }
 
 export const categories: { value: Category; label: string }[] = [

@@ -7,6 +7,12 @@ import {
 import type { Category, Post, PostStatus, ResourceLink } from "@/lib/post-types";
 import { getPrisma } from "@/lib/prisma";
 
+/**
+ * Content toggle: when true, the site behaves as if there are no posts.
+ * This is an intentional "clear all posts" switch without touching the DB.
+ */
+const CLEAR_ALL_POSTS = true;
+
 const postSelect = {
   id: true,
   slug: true,
@@ -23,6 +29,7 @@ const postSelect = {
   dashboardSrc: true,
   resources: true,
   notionPageId: true,
+  contentBlocks: true,
 } satisfies Prisma.PostSelect;
 
 type PostRecord = Prisma.PostGetPayload<{ select: typeof postSelect }>;
@@ -93,6 +100,11 @@ function parseResources(resources: Prisma.JsonValue | null): ResourceLink[] | un
   return parsed.length > 0 ? parsed : undefined;
 }
 
+function parseContentBlocks(value: Prisma.JsonValue | null): unknown[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value;
+}
+
 function mapPostFromRecord(record: PostRecord): Post {
   return {
     id: record.id,
@@ -110,10 +122,12 @@ function mapPostFromRecord(record: PostRecord): Post {
     dashboardSrc: record.dashboardSrc ?? undefined,
     resources: parseResources(record.resources),
     notionPageId: record.notionPageId ?? undefined,
+    contentBlocks: parseContentBlocks(record.contentBlocks),
   };
 }
 
 async function getPosts(where?: Prisma.PostWhereInput, limit?: number) {
+  if (CLEAR_ALL_POSTS) return [];
   const records = await getPrisma().post.findMany({
     where,
     select: postSelect,
@@ -129,6 +143,7 @@ export async function getAllPosts() {
 }
 
 export async function getAllPostSlugs() {
+  if (CLEAR_ALL_POSTS) return [];
   const records = await getPrisma().post.findMany({
     select: { slug: true },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
@@ -142,6 +157,7 @@ export async function getPostsByCategory(category: Category) {
 }
 
 export async function getPostBySlug(slug: string) {
+  if (CLEAR_ALL_POSTS) return undefined;
   const record = await getPrisma().post.findUnique({
     where: { slug },
     select: postSelect,

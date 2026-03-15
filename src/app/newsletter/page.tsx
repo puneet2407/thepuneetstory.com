@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CheckCircle, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { site, newsletter as newsletterContent } from "@/lib/site";
+import { pushToDataLayer } from "@/lib/gtm";
 
 export default function NewsletterPage() {
   const [email, setEmail] = useState("");
@@ -45,6 +46,10 @@ export default function NewsletterPage() {
         throw new Error(data?.error ?? "Failed to subscribe");
       }
 
+      pushToDataLayer({
+        event: "newsletter_signup",
+        form_location: "newsletter_page",
+      });
       setStatus("success");
       setEmail("");
     } catch {

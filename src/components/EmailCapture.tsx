@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { newsletter } from "@/lib/site";
+import { pushToDataLayer } from "@/lib/gtm";
 
 declare global {
   interface Window {
@@ -56,6 +57,10 @@ export function EmailCapture({ variant = "inline" }: EmailCaptureProps) {
         throw new Error(data?.error ?? "Failed to subscribe");
       }
 
+      pushToDataLayer({
+        event: "newsletter_signup",
+        form_location: variant === "banner" ? "home_banner" : "post_footer",
+      });
       setStatus("success");
       setEmail("");
       setTimeout(() => setStatus("idle"), 4000);

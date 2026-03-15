@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExternalLink, LayoutDashboard } from "lucide-react";
 import { DashboardEmbed } from "@/components/DashboardEmbed";
 import { EmailCapture } from "@/components/EmailCapture";
+import { GtmArticleView } from "@/components/GtmArticleView";
 import { NotionBlocks } from "@/components/NotionBlocks";
+import type { NotionBlock } from "@/lib/notion";
 import { getPostBySlug } from "@/lib/data";
-import { getNotionBlocks } from "@/lib/notion";
 import { categories } from "@/lib/post-types";
 import { site, person } from "@/lib/site";
 
@@ -95,6 +95,7 @@ export default async function PostPage({
 
   const categoryLabel = categories.find((c) => c.value === post.category)
     ?.label;
+  const initial = (person.name?.trim()?.charAt(0) || "•").toUpperCase();
 
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
@@ -104,9 +105,9 @@ export default async function PostPage({
 
   const readTime = post.readTime ?? 5;
 
-  const notionBlocks = post.notionPageId
-    ? await getNotionBlocks(post.notionPageId)
-    : [];
+  const notionBlocks = (post.contentBlocks ?? []) as (NotionBlock & {
+    _children?: NotionBlock[];
+  })[];
   const hasNotionContent = notionBlocks.length > 0;
 
   return (
@@ -116,6 +117,11 @@ export default async function PostPage({
         description={post.description}
         date={post.date}
         slug={post.slug}
+      />
+      <GtmArticleView
+        slug={post.slug}
+        title={post.title}
+        category={categoryLabel}
       />
 
       <article className="max-w-[728px] mx-auto px-6 sm:px-8 pt-10 pb-20">
@@ -131,17 +137,15 @@ export default async function PostPage({
 
         {/* Author byline */}
         <div className="flex items-center gap-3 mb-8">
-          <Link href="/about" className="shrink-0">
-            <Image
-              src={person.imageUrl}
-              alt={person.imageAlt}
-              width={44}
-              height={44}
-              className="rounded-full object-cover"
-              style={{ width: 44, height: 44 }}
-            />
+          <Link
+            href="/about"
+            className="shrink-0 inline-flex items-center justify-center rounded-full bg-foreground/10 text-foreground font-semibold"
+            style={{ width: 44, height: 44 }}
+            aria-hidden="true"
+          >
+            {initial}
           </Link>
-            <div className="flex flex-col">
+          <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <Link
                 href="/about"
@@ -199,23 +203,6 @@ export default async function PostPage({
             </a>
           )}
         </div>
-
-        {/* Hero image */}
-        {post.image && (
-          <figure className="mb-10 -mx-6 sm:-mx-8 md:-mx-16">
-            <Image
-              src={post.image}
-              alt={post.title}
-              width={1200}
-              height={630}
-              className="w-full h-auto"
-              priority
-            />
-            <figcaption className="image-caption mt-3 px-6 sm:px-8 md:px-16">
-              Photo for {post.title}
-            </figcaption>
-          </figure>
-        )}
 
         {/* Article body */}
         <div className="prose max-w-none">
@@ -325,15 +312,13 @@ export default async function PostPage({
         {/* Author footer */}
         <div className="border-t border-[rgba(0,0,0,0.06)] pt-8 mb-8">
           <div className="flex items-start gap-4">
-            <Link href="/about" className="shrink-0">
-              <Image
-                src={person.imageUrl}
-                alt={person.imageAlt}
-                width={72}
-                height={72}
-                className="rounded-full object-cover"
-                style={{ width: 72, height: 72 }}
-              />
+            <Link
+              href="/about"
+              className="shrink-0 inline-flex items-center justify-center rounded-full bg-foreground/10 text-foreground font-semibold"
+              style={{ width: 72, height: 72, fontSize: 26 }}
+              aria-hidden="true"
+            >
+              {initial}
             </Link>
             <div>
               <p className="text-base font-medium text-[#292929] mb-1">

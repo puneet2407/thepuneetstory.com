@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ImageWithFallback } from "@/components/figma/ImageWithFallback";
 import { EmailCapture } from "@/components/EmailCapture";
 import { person, social, about } from "@/lib/site";
 
@@ -10,19 +9,18 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const initial = (person.name?.trim()?.charAt(0) || "•").toUpperCase();
   return (
     <div className="min-h-screen bg-warm-paper">
       <section className="pt-12 pb-16 px-4">
         <div className="max-w-[680px] mx-auto">
           <div className="flex flex-col sm:flex-row gap-8 items-start">
-            <div className="flex-shrink-0 relative w-24 h-24 rounded-full overflow-hidden">
-              <ImageWithFallback
-                src={person.imageUrl}
-                alt={person.name}
-                fill
-                className="object-cover"
-                sizes="96px"
-              />
+            <div
+              className="flex-shrink-0 w-24 h-24 rounded-full bg-foreground/10 text-foreground font-semibold flex items-center justify-center"
+              aria-hidden="true"
+              style={{ fontSize: 32 }}
+            >
+              {initial}
             </div>
             <div>
               <h1 className="font-[family-name:var(--font-serif)] text-4xl md:text-5xl font-bold leading-tight mb-4">

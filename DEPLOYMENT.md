@@ -6,7 +6,7 @@ Set these in your host (Vercel, Netlify, etc.) before deploying. Copy from `.env
 
 | Variable | Required | Notes |
 |----------|----------|--------|
-| `DATABASE_URL` | Yes | Postgres connection string used by Prisma. Point to your VPS Postgres instance. |
+| `DATABASE_URL` | Yes | Postgres connection string used by Prisma. Recommended: use Neon. |
 | `NOTION_TOKEN` | For CMS | Notion internal integration token. Create at https://www.notion.so/my-integrations. |
 | `NOTION_DATABASE_ID` | For CMS | The 32-char hex ID of your Notion posts database. |
 | `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical site URL (e.g. `https://thepuneetstory.com`). Used by sitemap and OG. Defaults to `https://thepuneetstory.com` in sitemap if unset. |
@@ -17,21 +17,24 @@ Set these in your host (Vercel, Netlify, etc.) before deploying. Copy from `.env
 | `RECAPTCHA_SECRET_KEY` | If using reCAPTCHA | Server-side reCAPTCHA secret. |
 | `NEXT_PUBLIC_GTM_ID` | Optional | Google Tag Manager container ID (e.g. `GTM-XXXXXXX`). |
 
-### VPS Postgres (209.127.14.218)
+### Neon Postgres
 
-Use this format (database `thepuneetstory`, user `puneetstory`):
+Use the direct connection string from your Neon project. Example:
 
 ```
-DATABASE_URL=postgresql://puneetstory:YOUR_PASSWORD@209.127.14.218:5432/thepuneetstory
+DATABASE_URL=postgresql://user:password@ep-xxxxxx.us-east-2.aws.neon.tech/neondb?sslmode=require
 ```
 
-**Remote access:** Postgres must accept connections from the internet (or at least from Vercel’s IPs). On the VPS:
+Recommended flow:
 
-1. In `postgresql.conf`: set `listen_addresses = '*'` (or your server’s IP).
-2. In `pg_hba.conf`: add a line like `host thepuneetstory puneetstory 0.0.0.0/0 scram-sha-256` (or restrict to Vercel IPs for better security).
-3. Restart Postgres and ensure port 5432 is open in the firewall.
+1. Create a Neon project and database.
+2. Copy the **direct** connection string from Neon.
+3. Set `DATABASE_URL` locally and in Vercel.
+4. Run migrations and seed against Neon:
+   - `npx prisma migrate deploy`
+   - `npx prisma db seed`
 
-Then run migrations against the VPS: `npx prisma migrate deploy` (with `DATABASE_URL` set).
+Neon already handles remote access and SSL, so you do not need to manage firewall rules or `pg_hba.conf`.
 
 ## Build and run
 

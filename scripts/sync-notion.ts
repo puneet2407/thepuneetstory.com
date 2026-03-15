@@ -19,8 +19,9 @@
  *   Dashboard Src(rich_text)  → path to embedded dashboard HTML
  *   Published    (checkbox)   → only sync pages where this is checked
  *
- * The Notion page ID is stored as `notionPageId` in the Post table so the
- * app can fetch page content (blocks) at render time.
+ * The Notion page ID is stored as `notionPageId`; post body content (blocks)
+ * is fetched during sync and stored in `contentBlocks` so the app reads from
+ * the DB only (no Notion API calls at request time).
  */
 
 import "dotenv/config";
@@ -56,23 +57,75 @@ const prisma = new PrismaClient({
 const NOTION_API = "https://api.notion.com/v1";
 const NOTION_VERSION = "2022-06-28";
 
-async function notionFetch(path: string, body?: Record<string, unknown>) {
-  const res = await fetch(`${NOTION_API}${path}`, {
-    method: body ? "POST" : "GET",
-    headers: {
-      Authorization: `Bearer ${NOTION_TOKEN}`,
-      "Notion-Version": NOTION_VERSION,
-      "Content-Type": "application/json",
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+async function notionFetch(
+  path: string,
+  body?: Record<string, unknown>,
+  retries = 3
+): Promise<unknown> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(`${NOTION_API}${path}`, {
+      method: body ? "POST" : "GET",
+      headers: {
+        Authorization: `Bearer ${NOTION_TOKEN}`,
+        "Notion-Version": NOTION_VERSION,
+        "Content-Type": "application/json",
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Notion API ${res.status}: ${text}`);
+    if (res.status === 429) {
+      const waitSec = Math.max(2, parseInt(res.headers.get("Retry-After") ?? "2", 10));
+      if (attempt < retries) {
+        console.warn(`  Rate limited; waiting ${waitSec}s before retry...`);
+        await new Promise((r) => setTimeout(r, waitSec * 1000));
+        continue;
+      }
+    }
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Notion API ${res.status}: ${text}`);
+    }
+
+    return res.json();
   }
 
-  return res.json();
+  throw new Error("Notion API rate limited; max retries exceeded.");
+}
+
+interface NotionBlockListResponse {
+  results: Array<{ id: string; type?: string; has_children?: boolean; [k: string]: unknown }>;
+  has_more: boolean;
+  next_cursor: string | null;
+}
+
+async function fetchBlocksRecursive(blockId: string): Promise<unknown[]> {
+  const blocks: unknown[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const path = `/blocks/${blockId}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ""}`;
+    const response = (await notionFetch(path)) as NotionBlockListResponse;
+
+    for (const block of response.results) {
+      const fullBlock = block as Record<string, unknown>;
+      blocks.push(fullBlock);
+
+      if (
+        fullBlock.has_children === true &&
+        fullBlock.type !== "child_page"
+      ) {
+        const children = await fetchBlocksRecursive(fullBlock.id as string);
+        (fullBlock as Record<string, unknown>)._children = children;
+        await new Promise((r) => setTimeout(r, 350));
+      }
+    }
+
+    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+    if (cursor) await new Promise((r) => setTimeout(r, 350));
+  } while (cursor);
+
+  return blocks;
 }
 
 interface NotionQueryResponse {
@@ -247,6 +300,19 @@ async function syncNotionPosts() {
           ...data,
         },
       });
+
+      if (page.id) {
+        try {
+          const contentBlocks = await fetchBlocksRecursive(page.id);
+          await prisma.post.update({
+            where: { slug },
+            data: { contentBlocks: contentBlocks as Prisma.InputJsonValue },
+          });
+        } catch (err) {
+          console.warn(`  Could not fetch blocks for "${slug}":`, err);
+        }
+        await new Promise((r) => setTimeout(r, 400));
+      }
 
       console.log(`  ✓ ${slug}`);
       synced++;

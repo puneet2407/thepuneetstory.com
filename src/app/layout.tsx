@@ -5,6 +5,7 @@ import "./globals.css";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { GoogleTagManager } from "@/components/GoogleTagManager";
+import { GtmPageView } from "@/components/GtmPageView";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -87,13 +88,14 @@ export default function RootLayout({
       <body
         className={`${montserrat.variable} ${sourceSerif.variable} antialiased`}
       >
+        <GoogleTagManager />
         {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
           <Script
             src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
             strategy="afterInteractive"
           />
         )}
-        <GoogleTagManager />
+        <GtmPageView />
         <JsonLd />
         <div className="min-h-screen flex flex-col">
           <Navigation />
