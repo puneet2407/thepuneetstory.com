@@ -11,7 +11,7 @@ import { getPrisma } from "@/lib/prisma";
  * Content toggle: when true, the site behaves as if there are no posts.
  * This is an intentional "clear all posts" switch without touching the DB.
  */
-const CLEAR_ALL_POSTS = true;
+const CLEAR_ALL_POSTS = false;
 
 const postSelect = {
   id: true,
