@@ -24,6 +24,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
   const categoryLabel = categories.find((c) => c.value === post.category)
     ?.label;
   const initial = (person.name?.trim()?.charAt(0) || "•").toUpperCase();
+  const hasDashboard = Boolean(post.dashboardSrc?.trim());
 
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
@@ -51,7 +52,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
               <div className="video-overlay" />
               <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
                 {post.status && <StatusBadge status={post.status} />}
-                {post.isDashboard && (
+                {hasDashboard && (
                   <span className="inline-flex items-center gap-1.5 text-white/90 text-xs font-medium bg-black/40 rounded-full px-2.5 py-1">
                     <BarChart3 className="w-3 h-3" />
                     Interactive
@@ -143,7 +144,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
             <span>{readTime} min read</span>
             <span>·</span>
             <span>{formattedDate}</span>
-            {post.isDashboard && (
+            {hasDashboard && (
               <>
                 <span>·</span>
                 <span className="inline-flex items-center gap-1">

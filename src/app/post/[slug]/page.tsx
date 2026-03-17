@@ -109,6 +109,7 @@ export default async function PostPage({
     _children?: NotionBlock[];
   })[];
   const hasNotionContent = notionBlocks.length > 0;
+  const hasDashboard = Boolean(post.dashboardSrc?.trim());
 
   return (
     <div className="min-h-screen bg-warm-paper">
@@ -171,7 +172,7 @@ export default async function PostPage({
               <span>{readTime} min read</span>
               <span>·</span>
               <span>{formattedDate}</span>
-              {post.isDashboard && (
+              {hasDashboard && (
                 <>
                   <span>·</span>
                   <span className="inline-flex items-center gap-1">
@@ -241,42 +242,19 @@ export default async function PostPage({
             </>
           )}
 
-          {post.isDashboard && (
+          {hasDashboard && (
             <>
               <ArticleDivider />
               <DashboardEmbed
                 title="Interactive Dashboard"
-                description={
-                  post.dashboardSrc
-                    ? "Compare Ontario auto insurer rate changes. Filter, sort, and explore the data below."
-                    : "Use the tools below to calculate, compare, or track your own data"
-                }
+                description="Compare Ontario auto insurer rate changes. Filter, sort, and explore the data below."
               >
-                {post.dashboardSrc ? (
-                  <iframe
-                    src={post.dashboardSrc}
-                    title="Ontario Auto Insurance Rate Comparison Dashboard"
-                    className="w-full min-h-[1400px] border-0"
-                    sandbox="allow-scripts allow-same-origin"
-                  />
-                ) : (
-                  <div className="bg-[#fafafa] rounded-lg p-8 my-8">
-                    <LayoutDashboard className="w-12 h-12 text-[#757575] mx-auto mb-4" />
-                    <h3 className="font-[family-name:var(--font-serif)] text-xl mb-2">
-                      Interactive Tool
-                    </h3>
-                    <p className="text-[#757575] text-base mb-4">
-                      In a production environment, this would embed your custom
-                      dashboard HTML.
-                    </p>
-                    <ul className="text-base space-y-1 text-[#757575]">
-                      <li>Real-time calculations</li>
-                      <li>Data visualization with charts</li>
-                      <li>Comparison tools</li>
-                      <li>Downloadable reports</li>
-                    </ul>
-                  </div>
-                )}
+                <iframe
+                  src={post.dashboardSrc}
+                  title="Ontario Auto Insurance Rate Comparison Dashboard"
+                  className="w-full min-h-[1400px] border-0"
+                  sandbox="allow-scripts allow-same-origin"
+                />
               </DashboardEmbed>
             </>
           )}
